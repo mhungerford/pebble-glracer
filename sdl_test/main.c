@@ -108,17 +108,12 @@ void sdl_draw(void) {
         SDL_Quit();
         exit(EXIT_SUCCESS);
       }
-      case SDLK_a: {
-        wireframe = !wireframe;
+      case SDLK_LEFT: {
+        move(2);
         break;
       }
-      case SDLK_s: {
-        rotation = (rotation + 1) % 2;
-        break;
-      }
-      case SDLK_d: {
-        reset = true;
-        rotation = 0;
+      case SDLK_RIGHT: {
+        move(4);
         break;
       }
       default:

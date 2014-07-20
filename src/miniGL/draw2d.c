@@ -57,8 +57,11 @@ const uint8_t BYTES_PER_ROW = 20;//FRAMEBUFFER_WIDTH / 8;//was 20
 static void draw_pixel(int x, int y) {
     if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT|| x < 0 || y < 0 || !screen_buffer) return;
     int byte_offset = y*BYTES_PER_ROW + x/8;
-    //screen_buffer[byte_offset] &= ~(1<<(x%8));
-    screen_buffer[byte_offset] |= (1<<(x%8));
+    if(current_color){
+      screen_buffer[byte_offset] |= (1<<(x%8));
+    } else {
+      screen_buffer[byte_offset] &= ~(1<<(x%8));
+    }
 }
 
 void d2d_DrawLine(int x0, int y0, int x1, int y1) {
