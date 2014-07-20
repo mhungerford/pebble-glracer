@@ -204,9 +204,14 @@
 extern "C" {
 #endif
 
-#ifndef USE_FIXED_POINT
+//#ifndef USE_FIXED_POINT
+#if 1
 
+#define __USE_BSD
 #include <math.h>
+
+#define CONST_PI M_PI
+#define CONST_PI_4 M_PI_4
 	
 typedef double sll;
 typedef double ull;
@@ -217,6 +222,7 @@ typedef double ull;
 #define sll_abs(X)	(fabs(X))
 #define sllneg(X)       (-(X))
 #define sllmul2(X)  (X*2.0)
+#define slldiv2(X)  (X/2.0)
 
 
 static __inline__ double sll2dbl(sll x)

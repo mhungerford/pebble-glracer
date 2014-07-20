@@ -412,6 +412,35 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
   // fill in here.
 }
 
+void glFrustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat znear, GLfloat zfar) {
+  GLfloat temp, temp2, temp3, temp4;
+  temp = 2.0 * znear;
+  temp2 = right - left;
+  temp3 = top - bottom;
+  temp4 = zfar - znear;
+
+  GLfloat *matrix = per_matrix;
+  matrix[0] = temp / temp2;
+  matrix[1] = 0.0;
+  matrix[2] = 0.0;
+  matrix[3] = 0.0;
+  matrix[4] = 0.0;
+  matrix[5] = temp / temp3;
+  matrix[6] = 0.0;
+  matrix[7] = 0.0;
+  matrix[8] = (right + left) / temp2;
+  matrix[9] = (top + bottom) / temp3;
+  matrix[10] = (-zfar - znear) / temp4;
+  matrix[11] = -1.0;
+  matrix[12] = 0.0;
+  matrix[13] = 0.0;
+  matrix[14] = (-temp * zfar) / temp4;
+  matrix[15] = 0.0;
+
+  //glMultMatrixf(matrix);
+
+}
+
 /**
  * Sets up the perspective projection matrix and screen coordinate transform
  * matrix to correctly render perspective projections given a field of view
@@ -440,9 +469,11 @@ void gluPerspective(GLdouble fovy,
   if (m == NULL)
     return;
 
+  /*
   InitializeMatrix(per_matrix);
   (per_matrix)[10] = int2sll(0);
   (per_matrix)[11] = sllinv(near);
+  */  
 
   InitializeMatrix(scr_matrix);
   (scr_matrix)[0] = slldiv(int2sll(screen_width), width);
@@ -450,6 +481,14 @@ void gluPerspective(GLdouble fovy,
   (scr_matrix)[10] = int2sll(0);
   (scr_matrix)[12] = int2sll(screen_startx + screen_width/2);
   (scr_matrix)[13] = int2sll(screen_starty + screen_height/2);
+
+
+  GLdouble xmin, xmax, ymin, ymax;
+  ymax = sllmul(near, slltan(sllmul(fovy, slldiv(CONST_PI, int2sll(360)))));
+  ymin = -ymax;
+  xmin = sllmul(ymin, aspect);
+  xmax = sllmul(ymax, aspect);
+  glFrustum(xmin, xmax, ymin, ymax, near, distant);
 
 }
 
@@ -704,6 +743,7 @@ void glEnd(void) {
 
     /** Go from 4D back to 3D */
     for(j=0;j<4;j++) {
+      if(in1[3] == 0) break; //protect against nan, offscreen
       in1[j] = slldiv(in1[j], in1[3]);
     }
 
@@ -987,7 +1027,7 @@ void glEnd(void) {
         DrawScanLine(start, end, normal, normal,
           GOURAUD);
 #else
-          d2d_DrawScanLine(sll2int(start[0]), sll2int(start[1]),
+        d2d_DrawScanLine(sll2int(start[0]), sll2int(start[1]),
           sll2int(end[0]), sll2int(end[1]));
 #endif
 

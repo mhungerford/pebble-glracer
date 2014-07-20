@@ -4,6 +4,8 @@
 #include "miniGL/miniGL.h"
 #define GL_COLOR_BUFFER_BIT GL_COLOR
 
+#include <stdio.h> //printf for debugging with SDL
+
 
 //Evil hack for softfloat workarounds
 //__extendsfdf2 pulls in all of ieee754-df.S (about 3164 bytes)
@@ -21,12 +23,17 @@ void gl_init() {
   sll yy = int2sll(FRAMEBUFFER_HEIGHT / 2);
   sll near = xx > yy ? xx : yy;
   near = -sllmul2(near);
-  glOrtho(-xx, xx, -yy, yy, near, int2sll(30));
+  
+  //for GLRacer, want to do perspective projection
+  //glOrtho(-xx, xx, -yy, yy, near, int2sll(30));
+  gluPerspective(int2sll(60), int2sll(1), int2sll(10), int2sll(1024));
 
   glMatrixMode( GL_MODELVIEW );
   glLoadIdentity();
 
-#if 1
+  glTranslatef(0,0,int2sll(-40));
+
+#if 0
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
   glEnable(GL_CULL_FACE);
@@ -42,68 +49,113 @@ void gl_init() {
   glLightfv(GL_LIGHT0, GL_AMBIENT, amb);
 
 #else
-//   gluPerspective(40, 1.0, 20.0, 100.0);
+  //gluPerspective(40, 1.0, 20.0, 100.0);
   glDisable(GL_LIGHTING);
-  glEnable(GL_CULL_FACE);
-  glPolygonMode(GL_FRONT, GL_LINE);
+  glPolygonMode(GL_FRONT, GL_FILL);
+  glDisable(GL_CULL_FACE);
 #endif
+}
+
+void gl_drawtunnel(int speed){
+  struct point {
+    sll x;
+    sll y;
+  };
+
+  //lets plan for a 16 segment tube for starters
+  static struct point tube_center_history[8] = { 
+    {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}, {0,0}};
+  static const sll tube_width = int2sll(78);
+
+  static int step = 0;
+  static int flip = 0;
+
+  glPolygonMode(GL_FRONT, GL_FILL);
+  for (int deep = 0; deep < 8 - 1; deep++){
+    struct point p1 = tube_center_history[deep];
+    struct point p2 = tube_center_history[deep+1];
+
+    for (int seg = 0; seg < 16; seg++){
+      sll seg_color = dbl2sll(((seg+deep+flip)%2)?0.25:0.75);
+      glColor3f(seg_color, seg_color, seg_color);
+
+      sll rad1 = sllmul(int2sll(seg), slldiv2(CONST_PI_4)); //radians for corner
+      struct point corner1 = {
+        (slladd(p1.x, sllmul(tube_width, sllcos(rad1)))),
+        (slladd(p1.y, sllmul(tube_width, sllsin(rad1))))};
+
+      sll rad2 = sllmul(int2sll(seg + 1), slldiv2(CONST_PI_4)); //radians for corner
+      struct point corner2 = {
+        (slladd(p2.x, sllmul(tube_width, sllcos(rad2)))),
+        (slladd(p2.y, sllmul(tube_width, sllsin(rad2))))};
+
+      glBegin(GL_POLYGON);
+      if(deep == 0){
+        glVertex3f(corner2.x, corner2.y, int2sll(-16 * deep));
+        glVertex3f(corner1.x, corner1.y, int2sll(-16 * deep));
+      }else{
+        glVertex3f(corner2.x, corner2.y, int2sll(-16 * deep + step));
+        glVertex3f(corner1.x, corner1.y, int2sll(-16 * deep + step));
+      }
+        glVertex3f(corner1.x, corner1.y, int2sll(-16 * (deep+1) + step));
+        glVertex3f(corner2.x, corner2.y, int2sll(-16 * (deep+1) + step));
+      glEnd();
+    }
+  }
+
+ step = (step + speed) % 16;
+ if (step == 0) {
+   flip = (flip + 1) % 2;
+ }
+}
+
+void gl_drawship(int x, int y){
+  const int ship_width = 30;
+  const int ship_height = 30;
+  int depth = 0;
+
+  glColor3f(dbl2sll(1), dbl2sll(1), dbl2sll(1));
+  glPolygonMode(GL_FRONT, GL_FILL);
+  glBegin(GL_POLYGON);
+    glVertex3f(
+      int2sll(x + ship_width), 
+      int2sll(y - ship_height), 
+      int2sll(depth));
+    glVertex3f(
+      int2sll(x - ship_width), 
+      int2sll(y - ship_height), 
+      int2sll(depth));
+    glVertex3f(
+      int2sll(x), 
+      int2sll(y), 
+      int2sll(depth));
+  glEnd();
+
+
+  /*
+  glBegin(GL_POLYGON);
+    glVertex3f(  -70,  70, 0);
+    glVertex3f(   70,  70, 0);
+    glVertex3f(   70, -70, 0);
+  glEnd();
+*/
 }
 
 void gl_drawframe(uint8_t* model, bool wireframe, uint8_t rotation, bool reset) {
   glPolygonMode(GL_FRONT, (wireframe) ? GL_LINE : GL_FILL);
 
-  int triangle_count = *(int*)&model[80];
   sll bg_color = dbl2sll(0); // change this to 0.5 for a gray
   glClearColor(bg_color, bg_color, bg_color,int2sll(0));
   glClear(GL_COLOR_BUFFER_BIT);
 
-  if (reset) {
-    glLoadIdentity();
-  }
+  //if (reset) {
+  //  glLoadIdentity();
+  //}
 
-  if (rotation == 0) {
-    glRotatef(int2sll(-10), int2sll(1), int2sll(1), int2sll(0));
-  } else {
-    glRotatef(int2sll(-10), int2sll(1), int2sll(1), int2sll(1));
-  }
-  for (int i = 0; i < triangle_count; i++){
-    //if((i % 50) == 0) psleep(1);
-    struct stl_data stl = *(struct stl_data*)&model[80 + 4 + i*sizeof(stl)];
-//     float red   = (   stl.color & 0x001F )        / 31.0;
-//     float green = ( ( stl.color & 0x03E0 ) >> 5 ) / 31.0;
-//     float blue  = ( ( stl.color & 0x7C00 ) >> 10) / 31.0;
+  gl_drawtunnel(2);
+  gl_drawship(62, 10);
 
-//     printf("stl[%i]: red:%f green:%f blue:%f \n",i,red,green,blue);
-//     printf("normal( %f, %f, %f )\n",
-//       stl.normal[0], stl.normal[1], stl.normal[2]);
-//     printf(
-//       "vertex1( %f ,%f ,%f )\n"
-//       "vertex2( %f ,%f ,%f )\n"
-//       "vertex3( %f ,%f ,%f )\n",
-//       stl.vertex1[0],stl.vertex1[1],stl.vertex1[2],
-//       stl.vertex2[0],stl.vertex2[1],stl.vertex2[2],
-//       stl.vertex3[0],stl.vertex3[1],stl.vertex3[2]);
-
-    //glColor3f(red,green,blue);
-    glColor3f(int2sll(1), int2sll(1), int2sll(1));
-    glBegin(GL_POLYGON);
-    glNormal3f(
-      dbl2sll(llvm_extendsfdf2(stl.normal[0])),
-      dbl2sll(llvm_extendsfdf2(stl.normal[1])),
-      dbl2sll(llvm_extendsfdf2(stl.normal[2])));
-    glVertex3f(
-      dbl2sll(llvm_extendsfdf2(stl.vertex1[0])), 
-      dbl2sll(llvm_extendsfdf2(stl.vertex1[1])), 
-      dbl2sll(llvm_extendsfdf2(stl.vertex1[2])));
-    glVertex3f(
-      dbl2sll(llvm_extendsfdf2(stl.vertex2[0])), 
-      dbl2sll(llvm_extendsfdf2(stl.vertex2[1])), 
-      dbl2sll(llvm_extendsfdf2(stl.vertex2[2])));
-    glVertex3f(
-      dbl2sll(llvm_extendsfdf2(stl.vertex3[0])), 
-      dbl2sll(llvm_extendsfdf2(stl.vertex3[1])), 
-      dbl2sll(llvm_extendsfdf2(stl.vertex3[2])));
-    glEnd();
-  }
+  //glRotatef(int2sll(-10), int2sll(1), int2sll(1), int2sll(0));
+  
   //glFlush();
 }

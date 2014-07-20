@@ -21,13 +21,11 @@ uint8_t *screen_buffer; // pointer to actual screen buffer of the app (set durin
 static uint8_t current_color = 0x00; //Default to black
 static uint8_t clear_color = 0x00; //Default to black
 
-#if 0
 static void swap_points(int32_t* v0, int32_t* v1) {
   *v0 ^= *v1;
   *v1 ^= *v0;
   *v0 ^= *v1;
 }
-#endif
 
 // Bayer matrix for ordered dithering
 static const uint8_t ditherMatrix[8][8] = {
@@ -54,12 +52,12 @@ uint8_t ditherPattern(int16_t y, uint8_t gray) {// calculate repeating, dithered
 
 const int16_t SCREEN_WIDTH = FRAMEBUFFER_WIDTH;
 const int16_t SCREEN_HEIGHT = FRAMEBUFFER_HEIGHT;
-const uint8_t BYTES_PER_ROW = 20;
+const uint8_t BYTES_PER_ROW = 20;//FRAMEBUFFER_WIDTH / 8;//was 20
 
 static void draw_pixel(int x, int y) {
     if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT|| x < 0 || y < 0 || !screen_buffer) return;
     int byte_offset = y*BYTES_PER_ROW + x/8;
-    screen_buffer[byte_offset] &= ~(1<<(x%8));
+    //screen_buffer[byte_offset] &= ~(1<<(x%8));
     screen_buffer[byte_offset] |= (1<<(x%8));
 }
 
@@ -109,8 +107,8 @@ void d2d_DrawScanLine(int _x0, int _y0, int _x1, int _y1) {
     int16_t x1 = (int16_t) _x0;
     int16_t x2 = (int16_t) _x1;
     if(x2<x1){
-        //swap_points((int32_t *) &x1, (int32_t *) &x2);
-        return;
+        swap_points((int32_t *) &x1, (int32_t *) &x2);
+        //return; //hack to provide fake culling
     }
     x1--; //temp hack to help reduce seams by overlapping edges
 

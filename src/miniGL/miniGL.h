@@ -31,7 +31,9 @@
 #include <stddef.h>
 
 // Using fixed point sll math library for GLfloat,GLdouble
-#define USE_FIXED_POINT 1
+#ifndef USE_FIXED_POINT
+  #define USE_FIXED_POINT 1
+#endif
 //#undef __arm__
 #ifdef __arm__
   #pragma message "__arm__ enabled"
@@ -52,7 +54,7 @@ typedef int Err;
 
 extern uint32_t miniGLLibRef;
 
-#define MAX_VERTICES            4 //30
+#define MAX_VERTICES            8 //30
 #define PI                      3.1415926
 #define GOURAUD                 0x450
 #define PHONG                   0x451
