@@ -12,6 +12,7 @@ def options(ctx):
     ctx.load('pebble_sdk')
 
 def configure(ctx):
+    ctx.load("clang_compilation_database", tooldir=".")
     ctx.load('pebble_sdk')
 
 def build(ctx):

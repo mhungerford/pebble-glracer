@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "model_stl.h"
+#include "gltunnel.h"
 #include "miniGL/miniGL.h"
 #define GL_COLOR_BUFFER_BIT GL_COLOR
 

@@ -10,7 +10,7 @@ extern int SDL_SoftStretch(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Surface *dst, SDL_Rect *dstrect);
 
 #define USE_FIXED_POINT 0
-#include "model_stl.h"
+#include "gltunnel.h"
 #include "miniGL/miniGL.h"
 
 static bool reset = false;

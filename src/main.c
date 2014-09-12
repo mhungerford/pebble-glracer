@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include "model_stl.h"
+#include "gltunnel.h"
 
 static Window *window;
 static Layer *render_layer;
