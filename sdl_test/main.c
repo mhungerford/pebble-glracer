@@ -9,29 +9,11 @@
 extern int SDL_SoftStretch(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Surface *dst, SDL_Rect *dstrect);
 
-#define USE_FIXED_POINT 0
-#include "gltunnel.h"
 #include "miniGL/miniGL.h"
 
-static bool reset = false;
-static bool wireframe = false;
-static uint8_t rotation = 0;
+#include "game.h"
 
-static unsigned char* load_model() {
-  FILE* modelfile = fopen("../resources/skull.stl","r");
-  if(modelfile == NULL){
-    printf("Error: couldn't open modelfile\n");
-    exit(EXIT_FAILURE);
-  }
-  fseek(modelfile,0,SEEK_END);
-  int modelfile_bytes = ftell(modelfile);
-  fseek(modelfile,0,SEEK_SET);
-  unsigned char* model = (unsigned char*)malloc(modelfile_bytes);
-  fread(model,1,modelfile_bytes,modelfile);
-  return model;
-}
-
-#define SCALE_WINDOW 3
+#define SCALE_WINDOW 2
 
 SDL_Surface *sdl_surface; // 32-bit sdl window surface
 SDL_Surface *cpy_surface; // 32-bit surface for converting/scaling
@@ -93,8 +75,6 @@ void sdl_draw(void) {
   SDL_SoftStretch(cpy_surface, 0, sdl_surface, 0);
   SDL_Flip(sdl_surface);
 
-  reset = false;
-
   SDL_Event event;
   while(SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -109,11 +89,11 @@ void sdl_draw(void) {
         exit(EXIT_SUCCESS);
       }
       case SDLK_LEFT: {
-        move(2);
+        move_left();
         break;
       }
       case SDLK_RIGHT: {
-        move(4);
+        move_right();
         break;
       }
       default:
@@ -125,15 +105,13 @@ void sdl_draw(void) {
       break;
     }
   }
-  SDL_Delay(200);
+  SDL_Delay(80);
 }
 
 //provided by draw2d
 extern uint8_t *screen_buffer;
 
 int main(int argc, char* argv[]){
-  unsigned char* model = load_model();
-
   sdl_setup();
 
   //point the draw2d buffer to our sdl buffer pointer
@@ -142,7 +120,7 @@ int main(int argc, char* argv[]){
   gl_init();
 
   while (1) {
-    gl_drawframe(model, wireframe, rotation, reset);
+    gl_drawframe();
     sdl_draw();
   }
 

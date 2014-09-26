@@ -204,8 +204,7 @@
 extern "C" {
 #endif
 
-//#ifndef USE_FIXED_POINT
-#if 1
+#ifndef USE_FIXED_POINT
 
 #define __USE_BSD
 #include <math.h>

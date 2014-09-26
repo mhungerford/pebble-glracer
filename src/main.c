@@ -1,15 +1,10 @@
 #include <pebble.h>
-#include "gltunnel.h"
+
+#include "game.h"
 
 static Window *window;
 static Layer *render_layer;
-static bool wireframe = false;
 
-static uint8_t max_models = 0;
-static uint8_t model_index = 0;
-static uint8_t model_rotation = 0;
-
-static bool reset_rotate = false;
 static void register_timer(void* data);
 
 //#define FPS 1
@@ -17,40 +12,19 @@ static void register_timer(void* data);
 #define MAX(A,B) ((A>B) ? A : B)
 #define MIN(A,B) ((A<B) ? A : B)
 
-uint16_t frame = 0;
-uint8_t* model_buf = NULL;
-
 extern uint8_t *screen_buffer;
 
 static void register_timer(void* data);
 
-static bool load_model_resource(int index) {
-  if(model_buf) {
-    free(model_buf);
-    model_buf = NULL;
-  }
-  ResHandle handle = resource_get_handle(RESOURCE_ID_MODEL_1 + index);
-  size_t len = resource_size(handle);
-  uint8_t* buf = malloc(len);
-  resource_load(handle, buf, len);
-  model_buf = buf;
-  return true;
-}
-
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  model_rotation = (model_rotation + 1) % 2;
+  move_left();
 }
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  wireframe = !wireframe;
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-  // Increment the index (wrap around if necessary)
-  model_index = (model_index + 1) % max_models;
-  load_model_resource(model_index);
-  reset_rotate = true;
-  model_rotation = 0;
+  move_right();
 }
 
 static void click_config_provider(void *context) {
@@ -68,8 +42,7 @@ static void render_opengl(Layer* layer, GContext *ctx) {
   GBitmap* bitmap = (GBitmap*)ctx;
   screen_buffer = (uint8_t*)bitmap->addr;
 
-  gl_drawframe(model_buf, wireframe, model_rotation, reset_rotate);
-  reset_rotate = false;
+  gl_drawframe();
 #ifdef FPS
   frame_count++;
 #endif
@@ -104,11 +77,6 @@ static void window_unload(Window *window) {}
 static void init(void) {
   light_enable(true);  // Leave the backlight on
 
-  //Discover how many images from base index
-  while (resource_get_handle(RESOURCE_ID_MODEL_1 + max_models)) {
-    max_models++;
-  }
-
   window = window_create();
   window_set_fullscreen(window, true);
   window_set_background_color(window, GColorBlack);
@@ -118,8 +86,6 @@ static void init(void) {
     .unload = window_unload,
   });
   window_stack_push(window, true);
-
-  load_model_resource(model_index);
 
   gl_init();
 }

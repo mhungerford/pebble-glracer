@@ -29,6 +29,8 @@
 #include "draw2d.h"
 #include <stdint.h>
 
+#pragma GCC optimize ("O3")
+
 #define W 1 //used for integer calcs
 #define EPSILON dbl2sll(0.02)
 
@@ -337,6 +339,14 @@ void glColor3f(GLfloat r, GLfloat g, GLfloat b) {
   d2d_SetColor(sll2int(cur_color[0]), sll2int(cur_color[1]), sll2int(cur_color[2]));
 }
 
+void glColor3i(GLint r, GLint g, GLint b) {
+  sll cmax = int2sll(255);
+  glColor3f( 
+      slldiv(int2sll(r),cmax),
+      slldiv(int2sll(g),cmax),
+      slldiv(int2sll(b),cmax));
+}
+
 /**
  * Set the current color to be the RGB value (r,g,b) with an alpha value of a.
  *
@@ -414,28 +424,28 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 
 void glFrustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat znear, GLfloat zfar) {
   GLfloat temp, temp2, temp3, temp4;
-  temp = 2.0 * znear;
-  temp2 = right - left;
-  temp3 = top - bottom;
-  temp4 = zfar - znear;
+  temp = sllmul(int2sll(2), znear);
+  temp2 = sllsub(right, left);
+  temp3 = sllsub(top, bottom);
+  temp4 = sllsub(zfar, znear);
 
   GLfloat *matrix = per_matrix;
-  matrix[0] = temp / temp2;
-  matrix[1] = 0.0;
-  matrix[2] = 0.0;
-  matrix[3] = 0.0;
-  matrix[4] = 0.0;
-  matrix[5] = temp / temp3;
-  matrix[6] = 0.0;
-  matrix[7] = 0.0;
-  matrix[8] = (right + left) / temp2;
-  matrix[9] = (top + bottom) / temp3;
-  matrix[10] = (-zfar - znear) / temp4;
-  matrix[11] = -1.0;
-  matrix[12] = 0.0;
-  matrix[13] = 0.0;
-  matrix[14] = (-temp * zfar) / temp4;
-  matrix[15] = 0.0;
+  matrix[0] = slldiv(temp, temp2);
+  matrix[1] = int2sll(0);
+  matrix[2] = int2sll(0);
+  matrix[3] = int2sll(0);
+  matrix[4] = int2sll(0);
+  matrix[5] = slldiv(temp, temp3);
+  matrix[6] = int2sll(0);
+  matrix[7] = int2sll(0);
+  matrix[8] = slldiv(slladd(right, left), temp2);
+  matrix[9] = slldiv(slladd(top, bottom), temp3);
+  matrix[10] = slldiv(sllsub(-zfar, znear), temp4);
+  matrix[11] = int2sll(-1);
+  matrix[12] = int2sll(0);
+  matrix[13] = int2sll(0);
+  matrix[14] = slldiv(sllmul(-temp, zfar), temp4);
+  matrix[15] = int2sll(0);
 
   //glMultMatrixf(matrix);
 
@@ -743,7 +753,7 @@ void glEnd(void) {
 
     /** Go from 4D back to 3D */
     for(j=0;j<4;j++) {
-      if(in1[3] == 0) break; //protect against nan, offscreen
+      if(in1[3] == int2sll(0)) break; //protect against nan, offscreen
       in1[j] = slldiv(in1[j], in1[3]);
     }
 
@@ -1148,8 +1158,19 @@ void glVertex3f(GLfloat x, GLfloat y, GLfloat z) {
 /**
  *
  */
+void glVertex3i(GLint x, GLint y, GLint z) {
+  glVertex3f(int2sll(x), int2sll(y), int2sll(z));
+}
+
+/**
+ *
+ */
 void glVertex2f(GLfloat x, GLfloat y) {
   glVertex3f(x, y, int2sll(0));
+}
+
+void glVertex2i(GLint x, GLint y) {
+  glVertex3f(int2sll(x), int2sll(y), int2sll(0));
 }
 
 /**

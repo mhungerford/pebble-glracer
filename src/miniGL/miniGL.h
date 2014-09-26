@@ -30,11 +30,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-// Using fixed point sll math library for GLfloat,GLdouble
-#ifndef USE_FIXED_POINT
-  #define USE_FIXED_POINT 1
-#endif
-//#undef __arm__
 #ifdef __arm__
   #pragma message "__arm__ enabled"
 #endif
@@ -214,6 +209,7 @@ void glLoadIdentity();
 void glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 void glClear(GLbitfield mask);
 void glColor3f(GLfloat r, GLfloat g, GLfloat b);
+void glColor3i(GLint r, GLint g, GLint b); // 0-255 for each channel
 void glColor4f(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 void glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top,
         GLdouble near, GLdouble distant);
@@ -226,6 +222,8 @@ void glEnd();
 void glFlush();
 void glVertex2f(GLfloat x, GLfloat y);
 void glVertex3f(GLfloat x, GLfloat y, GLfloat z);
+void glVertex2i(GLint x, GLint y);
+void glVertex3i(GLint x, GLint y, GLint z);
 void glShadeModel(GLenum mode);
 void glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
 void glScalef(GLfloat x, GLfloat y, GLfloat z);
