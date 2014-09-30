@@ -9,4 +9,4 @@ SRC=(
   ../src/miniGL/miniGL.c 
   )
 
-g++ $DEFINES -g -std=c99 -I. -I../src ${SRC[@]} -o sdl_main.bin -lm -lSDL
+gcc $DEFINES -framework Cocoa -g -std=c99 -I. -I../src ${SRC[@]} SDLMain.m -o sdl_main.bin -lm -lSDL

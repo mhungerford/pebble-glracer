@@ -14,46 +14,9 @@
   "resources": {
     "media": [
     {
-      "menuIcon": true,
-      "type": "png",
-      "name": "IMAGE_ICON",
-      "file": "pebblegl_icon.png"
-    },{
       "type": "raw",
       "name": "MODEL_1",
       "file": "mask.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_SKULL",
-      "file": "skull.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_SUPERMAN",
-      "file": "superman.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_FIGHTER",
-      "file": "fighter.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_GUN",
-      "file": "gun.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_SPIDER",
-      "file": "spider.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_ROBOT",
-      "file": "robot.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_UNICORN",
-      "file": "unicorn.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_N",
-      "file": "n.stl"
     }
     ]
   }
